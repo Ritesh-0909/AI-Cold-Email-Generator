@@ -1,31 +1,51 @@
-const { Resend } = require('resend');
+const axios = require('axios');
 const otpEmailTemplate = require('../templates/otpEmail');
 
 const sendEmail = async (options) => {
     try {
-        if (!process.env.RESEND_API_KEY) {
-            throw new Error("RESEND_API_KEY is not set in environment variables");
+        if (!process.env.BREVO_API_KEY) {
+            throw new Error("BREVO_API_KEY is not set in environment variables");
         }
 
-        const resend = new Resend(process.env.RESEND_API_KEY);
-
-        const { data, error } = await resend.emails.send({
-            from: 'MailGen AI <onboarding@resend.dev>',
-            to: [options.to],
-            subject: options.subject,
-            text: options.text,
-            html: otpEmailTemplate(options.otp)
-        });
-
-        if (error) {
-            throw new Error(error.message);
+        if (!process.env.BREVO_SENDER_EMAIL) {
+            throw new Error("BREVO_SENDER_EMAIL is not set in environment variables");
         }
 
-        console.log("Email sent successfully:", data.id);
-        return data;
+        const response = await axios.post(
+            'https://api.brevo.com/v3/smtp/email',
+            {
+                sender: {
+                    name: 'MailGen AI',
+                    email: process.env.BREVO_SENDER_EMAIL
+                },
+                to: [
+                    {
+                        email: options.to
+                    }
+                ],
+                subject: options.subject,
+                textContent: options.text,
+                htmlContent: otpEmailTemplate(options.otp)
+            },
+            {
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                timeout: 30000
+            }
+        );
+
+        console.log("Email sent successfully:", response.data.messageId);
+        return response.data;
 
     } catch (error) {
-        console.log("Error sending email:", error.message);
+        console.log(
+            "Error sending email:",
+            error.response?.data || error.message
+        );
+
         throw error;
     }
 };
