@@ -1,32 +1,33 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const otpEmailTemplate = require('../templates/otpEmail');
 
-const sendEmail = async(options)=>{
-   try{
-     if(!process.env.EMAIL_USER || !process.env.EMAIL_PASS){
-        throw new Error("Email credentials are not set in environment variables");
-    }
-    const transporter = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: {
-            user:process.env.EMAIL_USER,
-            pass:process.env.EMAIL_PASS
+const sendEmail = async (options) => {
+    try {
+        if (!process.env.RESEND_API_KEY) {
+            throw new Error("RESEND_API_KEY is not set in environment variables");
         }
-    });
 
-    const mailOptions ={
-        from: `"MailGen AI" <${process.env.EMAIL_USER}>`,
-        to:options.to,
-        subject: options.subject,
-        text:options.text,
-        html: otpEmailTemplate(options.otp)
-    };
-    await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully");
-   }
-    catch(error) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
+        const { data, error } = await resend.emails.send({
+            from: 'MailGen AI <onboarding@resend.dev>',
+            to: [options.to],
+            subject: options.subject,
+            text: options.text,
+            html: otpEmailTemplate(options.otp)
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        console.log("Email sent successfully:", data.id);
+        return data;
+
+    } catch (error) {
         console.log("Error sending email:", error.message);
         throw error;
     }
-}
+};
+
 module.exports = sendEmail;

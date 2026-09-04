@@ -16,6 +16,7 @@
     "dev:client": "npm --prefix client/ai-cold-mail-generator run dev"
   },
   "dependencies": {
-    "concurrently": "^10.0.5"
+    "concurrently": "^10.0.5",
+    "resend": "^6.26.0"
   }
 }
