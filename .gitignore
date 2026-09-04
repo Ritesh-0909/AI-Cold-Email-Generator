@@ -1,0 +1,6 @@
+node_modules/
+.env
+.env.*
+!.env.example
+client/ai-cold-mail-generator/node_modules/
+client/ai-cold-mail-generator/dist/
