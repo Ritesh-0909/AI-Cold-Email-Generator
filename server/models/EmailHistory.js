@@ -19,11 +19,11 @@ const EmailHistorySchema = new mongoose.Schema({
     },
     linkedInDM: {
         type: String,
-        required: true
+        default:""
     },
     followUpEmail: {
         type: String,
-        required:true
+         default: ""
     }
 }, {timestamps: true});
 
